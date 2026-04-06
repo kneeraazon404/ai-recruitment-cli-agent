@@ -529,5 +529,110 @@ def process_documents(
     )
 
 
+@app.command(name="setup-notion", help="Add required properties to an existing Notion database.")
+def setup_notion(
+    notion_db_id: Annotated[
+        Optional[str],
+        typer.Option(
+            "--notion-db-id", "-n",
+            help="Notion database ID (overrides DEFAULT_NOTION_DB_ID in .env).",
+        ),
+    ] = None,
+) -> None:
+    """Configure a Notion database with all properties required for CV screening."""
+    errors: list[str] = []
+    if not NOTION_API_KEY:
+        errors.append("NOTION_API_KEY not found")
+
+    final_db_id = notion_db_id or DEFAULT_NOTION_DB_ID
+    if not final_db_id:
+        errors.append("Notion Database ID not provided (use --notion-db-id or set DEFAULT_NOTION_DB_ID in .env)")
+
+    if errors:
+        for err in errors:
+            console.print(f"[bold red]✗[/bold red] {err}")
+        raise typer.Exit(code=1)
+
+    if NotionClient is None:
+        console.print("[bold red]notion-client not installed.[/bold red]")
+        raise typer.Exit(code=1)
+
+    try:
+        notion = NotionClient(auth=NOTION_API_KEY)
+        db = notion.databases.retrieve(database_id=final_db_id)
+    except Exception as exc:
+        console.print(f"[bold red]✗ Cannot connect to Notion database:[/bold red] {exc}")
+        raise typer.Exit(code=1)
+
+    db_title_blocks = db.get("title", [])
+    db_name = db_title_blocks[0].get("plain_text", final_db_id) if db_title_blocks else final_db_id
+    console.print(f"[bold green]✓[/bold green] Connected: [cyan]{db_name}[/cyan]\n")
+
+    existing_props: dict[str, Any] = db.get("properties", {})
+    existing_names = set(existing_props.keys())
+
+    # Rename the title property to "Candidate Name" if needed
+    title_key = next((k for k, v in existing_props.items() if v.get("type") == "title"), None)
+    if title_key and title_key != "Candidate Name":
+        try:
+            notion.databases.update(
+                database_id=final_db_id,
+                properties={title_key: {"name": "Candidate Name"}},
+            )
+            console.print(f"  [green]✓[/green]  Renamed '{title_key}' → Candidate Name")
+            existing_names.discard(title_key)
+            existing_names.add("Candidate Name")
+        except Exception as exc:
+            console.print(f"  [yellow]⚠[/yellow]  Could not rename title property: {exc}")
+            console.print(f"       Manually rename '{title_key}' to 'Candidate Name' in Notion.")
+    elif title_key == "Candidate Name":
+        console.print(f"  [dim]↩  Already exists:[/dim] Candidate Name")
+
+    required: dict[str, Any] = {
+        "Email": {"email": {}},
+        "Contact Number": {"phone_number": {}},
+        "Skills": {"multi_select": {}},
+        "Position Title (JD)": {"rich_text": {}},
+        "Job ID (JD)": {"rich_text": {}},
+        "Experience Summary": {"rich_text": {}},
+        "AI Ranking Reason": {"rich_text": {}},
+        "Match Score": {"number": {"format": "number"}},
+        "Ranking Category": {
+            "select": {
+                "options": [
+                    {"name": "High Fit", "color": "green"},
+                    {"name": "Medium Fit", "color": "yellow"},
+                    {"name": "Low Fit", "color": "red"},
+                ]
+            }
+        },
+        "Status": {
+            "select": {
+                "options": [{"name": "New - AI Processed", "color": "blue"}]
+            }
+        },
+        "CV Filename": {"rich_text": {}},
+        "Processing Date": {"date": {}},
+    }
+
+    for prop in (k for k in required if k in existing_names):
+        console.print(f"  [dim]↩  Already exists:[/dim] {prop}")
+
+    to_add = {k: v for k, v in required.items() if k not in existing_names}
+    if to_add:
+        try:
+            notion.databases.update(database_id=final_db_id, properties=to_add)
+            for prop in to_add:
+                console.print(f"  [green]✓[/green]  Added: {prop}")
+        except Exception as exc:
+            console.print(f"[bold red]✗ Failed to add properties:[/bold red] {exc}")
+            raise typer.Exit(code=1)
+
+    console.print(
+        f"\n[bold green]Notion database is ready.[/bold green] "
+        f"Run [cyan]ai-recruit process[/cyan] to start screening CVs."
+    )
+
+
 if __name__ == "__main__":
     app()

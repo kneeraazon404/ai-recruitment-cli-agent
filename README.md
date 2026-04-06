@@ -3,7 +3,7 @@
 [![PyPI version](https://img.shields.io/pypi/v/ai-recruitment-agent)](https://pypi.org/project/ai-recruitment-agent/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ai-recruitment-agent)](https://pypi.org/project/ai-recruitment-agent/)
 [![PyPI - License](https://img.shields.io/pypi/l/ai-recruitment-agent)](https://pypi.org/project/ai-recruitment-agent/)
-[![Tests](https://img.shields.io/badge/tests-37%20passed-brightgreen)](#)
+[![CI](https://github.com/kneeraazon404/ai-recruitment-cli-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/kneeraazon404/ai-recruitment-cli-agent/actions/workflows/ci.yml)
 
 A CLI tool that screens CVs against a Job Description using **Google Gemini 1.5 Flash** and pushes ranked candidate profiles into a **Notion database** — one command, zero manual effort.
 
@@ -35,6 +35,21 @@ DEFAULT_NOTION_DB_ID=your_notion_database_id
 | `NOTION_API_KEY` | https://www.notion.so/my-integrations → New integration → copy secret |
 | `DEFAULT_NOTION_DB_ID` | Your Notion database URL: `notion.so/yourname/`**`THIS-PART`**`?v=...` |
 
+## Setup Notion Database
+
+Run once to add all required properties to your Notion database automatically:
+
+```bash
+ai-recruit setup-notion
+
+# or with an explicit database ID:
+ai-recruit setup-notion --notion-db-id xxxx-xxxx-xxxx-xxxx
+```
+
+> **Prerequisite:** Share your Notion database with the integration first — open the database → `•••` menu → **Connections** → add your integration.
+
+The command adds 13 properties (`Email`, `Skills`, `Match Score`, `Ranking Category`, etc.), renames the title column to `Candidate Name`, and skips anything already present.
+
 ## Run
 
 ```bash
@@ -49,6 +64,7 @@ ai-recruit process ./cvs/ ./jd.pdf
 ai-recruit process ./cvs/ ./jd.pdf --notion-db-id xxxx-xxxx-xxxx-xxxx
 
 # Other commands
+ai-recruit setup-notion --help
 ai-recruit --version
 ai-recruit --help
 ai-recruit process --help
@@ -63,28 +79,6 @@ ai-recruit process --help
 5. **Checks** Notion for duplicates by email + job ID before inserting.
 6. **Pushes** a new page to your Notion database for each unique candidate.
 7. **Prints** a summary table of processed / skipped / failed counts.
-
-## Notion Database Setup
-
-1. Go to [notion.so/my-integrations](https://www.notion.so/my-integrations) → create a new integration with **Read**, **Insert**, and **Update** permissions.
-2. Open your Notion database → `•••` menu → **Connections** → add your integration.
-3. Create these properties (exact names required):
-
-| Property | Type |
-|---|---|
-| Candidate Name | Title |
-| Email | Email |
-| Contact Number | Phone |
-| Skills | Multi-select |
-| Position Title (JD) | Text |
-| Job ID (JD) | Text |
-| Experience Summary | Text |
-| AI Ranking Reason | Text |
-| Match Score | Number |
-| Ranking Category | Select (`High Fit`, `Medium Fit`, `Low Fit`) |
-| Status | Select (`New - AI Processed`) |
-| CV Filename | Text |
-| Processing Date | Date |
 
 ## Troubleshooting
 

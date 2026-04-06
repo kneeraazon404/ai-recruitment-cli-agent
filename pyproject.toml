@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ai-recruitment-agent"
-version = "0.2.0"
+version = "0.3.0"
 description = "AI-powered CV screening CLI — ranks candidates against a Job Description using Google Gemini and pushes results to Notion"
 readme = "README.md"
 license = { text = "MIT" }
@@ -23,6 +23,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Office/Business",
     "Topic :: Utilities",
 ]
@@ -48,9 +49,21 @@ ai-recruit = "ai_recruitment_agent.main:app"
 Homepage = "https://github.com/kneeraazon404/ai-recruitment-cli-agent"
 Repository = "https://github.com/kneeraazon404/ai-recruitment-cli-agent"
 Issues = "https://github.com/kneeraazon404/ai-recruitment-cli-agent/issues"
+Changelog = "https://github.com/kneeraazon404/ai-recruitment-cli-agent/releases"
 
 [tool.hatch.build.targets.wheel]
 packages = ["ai_recruitment_agent"]
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+    "/.github",
+    "/tests",
+    "/cvs",
+    "/jds",
+    "/.env*",
+    "/main.py",
+    "/requirements.txt",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

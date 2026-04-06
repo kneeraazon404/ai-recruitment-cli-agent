@@ -17,6 +17,7 @@ __pycache__/
 
 # Environment variables
 .env
+.env.local
 
 # Distribution / build
 dist/
@@ -24,3 +25,7 @@ build/
 *.egg-info/
 *.tar.gz
 *.whl
+
+# Local sample data (CVs and job descriptions)
+cvs/
+jds/

@@ -4,6 +4,7 @@ import pytest
 from pathlib import Path
 from typer.testing import CliRunner
 
+from ai_recruitment_agent import __version__
 from ai_recruitment_agent.main import (
     app,
     _truncate,
@@ -203,7 +204,7 @@ class TestCliHelp:
         result = runner.invoke(app, ["--version"])
         assert result.exit_code == 0
         assert "ai-recruitment-agent" in result.stdout
-        assert "v0.2.0" in result.stdout
+        assert f"v{__version__}" in result.stdout
 
     def test_no_command_shows_guidance(self):
         result = runner.invoke(app, [])
