@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ai-recruitment-agent"
-version = "0.1.0"
+version = "0.1.1"
 description = "CLI tool to screen CVs against a Job Description using Google Gemini and Notion"
 readme = "README.md"
 license = { text = "MIT" }
