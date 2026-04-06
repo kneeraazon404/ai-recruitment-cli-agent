@@ -3,10 +3,13 @@
 [![PyPI version](https://img.shields.io/pypi/v/ai-recruitment-agent)](https://pypi.org/project/ai-recruitment-agent/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ai-recruitment-agent)](https://pypi.org/project/ai-recruitment-agent/)
 [![PyPI - License](https://img.shields.io/pypi/l/ai-recruitment-agent)](https://pypi.org/project/ai-recruitment-agent/)
+[![Tests](https://img.shields.io/badge/tests-37%20passed-brightgreen)](#)
 
-A CLI tool that screens CVs against a Job Description using Google Gemini and populates a Notion database with ranked candidate profiles.
+A CLI tool that screens CVs against a Job Description using **Google Gemini 1.5 Flash** and pushes ranked candidate profiles into a **Notion database** — one command, zero manual effort.
 
 **PyPI:** https://pypi.org/project/ai-recruitment-agent/
+
+---
 
 ## Install
 
@@ -16,7 +19,7 @@ pip install ai-recruitment-agent
 
 ## Configure
 
-Create a `.env` file in your working directory:
+Copy `.env.example` to `.env` and fill in your credentials:
 
 ```env
 GOOGLE_GEMINI_API_KEY=your_gemini_api_key
@@ -25,9 +28,12 @@ DEFAULT_NOTION_DB_ID=your_notion_database_id
 ```
 
 **Where to get these:**
-- **Gemini key** → https://aistudio.google.com/app/apikey
-- **Notion key** → https://www.notion.so/my-integrations → New integration → copy the secret
-- **Notion DB ID** → Open your Notion database in the browser — it's in the URL: `notion.so/yourname/THIS-PART?v=...`
+
+| Key | Source |
+|---|---|
+| `GOOGLE_GEMINI_API_KEY` | https://aistudio.google.com/app/apikey |
+| `NOTION_API_KEY` | https://www.notion.so/my-integrations → New integration → copy secret |
+| `DEFAULT_NOTION_DB_ID` | Your Notion database URL: `notion.so/yourname/`**`THIS-PART`**`?v=...` |
 
 ## Run
 
@@ -36,21 +42,33 @@ ai-recruit process <CV_FOLDER> <JD_PDF> [--notion-db-id <DB_ID>]
 ```
 
 ```bash
-# Example
+# Basic — reads DB ID from .env
+ai-recruit process ./cvs/ ./jd.pdf
+
+# Override Notion database
 ai-recruit process ./cvs/ ./jd.pdf --notion-db-id xxxx-xxxx-xxxx-xxxx
 
-# Show help
+# Other commands
+ai-recruit --version
 ai-recruit --help
 ai-recruit process --help
 ```
 
-`--notion-db-id` overrides `DEFAULT_NOTION_DB_ID` from `.env`.
+## What it does
+
+1. **Validates** API keys and Notion database access on startup.
+2. **Reads** the JD PDF — extracts position title and job ID via Gemini.
+3. **Iterates** all `.pdf` and `.docx` files in the CV folder with a live progress bar.
+4. For each CV: **extracts** text → **sends** to Gemini → receives a score (0–100), ranking (`High Fit` / `Medium Fit` / `Low Fit`), and structured candidate data.
+5. **Checks** Notion for duplicates by email + job ID before inserting.
+6. **Pushes** a new page to your Notion database for each unique candidate.
+7. **Prints** a summary table of processed / skipped / failed counts.
 
 ## Notion Database Setup
 
-1. Create an integration at [notion.so/my-integrations](https://www.notion.so/my-integrations) with Read, Insert, and Update permissions.
-2. Share your target database with the integration (database `•••` > Connections).
-3. Required properties:
+1. Go to [notion.so/my-integrations](https://www.notion.so/my-integrations) → create a new integration with **Read**, **Insert**, and **Update** permissions.
+2. Open your Notion database → `•••` menu → **Connections** → add your integration.
+3. Create these properties (exact names required):
 
 | Property | Type |
 |---|---|
@@ -70,10 +88,11 @@ ai-recruit process --help
 
 ## Troubleshooting
 
-| Issue | Fix |
+| Error | Fix |
 |---|---|
-| `GOOGLE_GEMINI_API_KEY not found` | Check `.env` exists and key is valid |
-| `NOTION_API_KEY not found` | Verify integration secret in `.env` |
-| `Notion initialization failed` | Confirm database is shared with the integration |
-| `Could not extract text from JD PDF` | PDF may be scanned or password-protected |
+| `GOOGLE_GEMINI_API_KEY not found` | Check `.env` exists in your working directory and the key is valid |
+| `NOTION_API_KEY not found` | Verify the integration secret in `.env` |
+| `Notion initialization failed` | Confirm the database is shared with your integration |
+| `Could not extract text from JD PDF` | PDF may be scanned, image-based, or password-protected |
 | Duplicate entries appearing | Ensure `Email` and `Job ID (JD)` properties exist with exact names |
+| Gemini API error | Check your quota at [aistudio.google.com](https://aistudio.google.com) |

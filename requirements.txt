@@ -1,6 +1,6 @@
-python-dotenv
 typer[all]
-google-generativeai
+python-dotenv
+google-genai
 notion-client
 pdfplumber
 python-docx
