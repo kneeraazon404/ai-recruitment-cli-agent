@@ -1,0 +1,6 @@
+python-dotenv
+typer[all]
+google-generativeai
+notion-client
+pdfplumber
+python-docx

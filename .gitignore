@@ -1,0 +1,26 @@
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Pytest
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+
+# Environment variables
+.env
+
+# Distribution / build
+dist/
+build/
+*.egg-info/
+*.tar.gz
+*.whl
