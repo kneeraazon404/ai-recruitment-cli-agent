@@ -354,3 +354,105 @@ class TestCliProcessFlow:
         )
         assert result.exit_code == 1
         assert "Could not extract text" in result.stdout
+
+
+# ---------------------------------------------------------------------------
+# setup-notion command tests
+# ---------------------------------------------------------------------------
+
+class TestSetupNotionCli:
+    def test_setup_notion_help(self):
+        result = runner.invoke(app, ["setup-notion", "--help"])
+        assert result.exit_code == 0
+        assert "--notion-db-id" in result.stdout
+
+    def test_setup_notion_missing_notion_key(self, monkeypatch):
+        monkeypatch.setattr("ai_recruitment_agent.main.NOTION_API_KEY", None, raising=False)
+        monkeypatch.setattr("ai_recruitment_agent.main.DEFAULT_NOTION_DB_ID", "db-id", raising=False)
+        result = runner.invoke(app, ["setup-notion"])
+        assert result.exit_code == 1
+        assert "NOTION_API_KEY not found" in result.stdout
+
+    def test_setup_notion_missing_db_id(self, monkeypatch):
+        monkeypatch.setattr("ai_recruitment_agent.main.NOTION_API_KEY", "key", raising=False)
+        monkeypatch.setattr("ai_recruitment_agent.main.DEFAULT_NOTION_DB_ID", None, raising=False)
+        result = runner.invoke(app, ["setup-notion"])
+        assert result.exit_code == 1
+        assert "Notion Database ID not provided" in result.stdout
+
+    def test_setup_notion_connection_failure(self, monkeypatch, mocker):
+        monkeypatch.setattr("ai_recruitment_agent.main.NOTION_API_KEY", "key", raising=False)
+        monkeypatch.setattr("ai_recruitment_agent.main.DEFAULT_NOTION_DB_ID", "db-id", raising=False)
+        mock_client = mocker.MagicMock()
+        mock_client.databases.retrieve.side_effect = Exception("Connection failed")
+        mocker.patch("ai_recruitment_agent.main.NotionClient", return_value=mock_client)
+        result = runner.invoke(app, ["setup-notion", "--notion-db-id", "db-id"])
+        assert result.exit_code == 1
+        assert "Cannot connect" in result.stdout
+
+    def test_setup_notion_adds_missing_properties(self, monkeypatch, mocker):
+        monkeypatch.setattr("ai_recruitment_agent.main.NOTION_API_KEY", "key", raising=False)
+        monkeypatch.setattr("ai_recruitment_agent.main.DEFAULT_NOTION_DB_ID", None, raising=False)
+        mock_client = mocker.MagicMock()
+        mock_client.databases.retrieve.return_value = {
+            "title": [{"plain_text": "Recruitment DB"}],
+            "properties": {
+                "Candidate Name": {"type": "title"},
+                "Email": {"type": "email"},
+            },
+        }
+        mock_client.databases.update.return_value = {}
+        mocker.patch("ai_recruitment_agent.main.NotionClient", return_value=mock_client)
+        result = runner.invoke(app, ["setup-notion", "--notion-db-id", "db-id"])
+        assert result.exit_code == 0
+        assert "Notion database is ready" in result.stdout
+        mock_client.databases.update.assert_called_once()
+
+    def test_setup_notion_renames_title_property(self, monkeypatch, mocker):
+        monkeypatch.setattr("ai_recruitment_agent.main.NOTION_API_KEY", "key", raising=False)
+        monkeypatch.setattr("ai_recruitment_agent.main.DEFAULT_NOTION_DB_ID", None, raising=False)
+        mock_client = mocker.MagicMock()
+        mock_client.databases.retrieve.return_value = {
+            "title": [{"plain_text": "My DB"}],
+            "properties": {
+                "Name": {"type": "title"},
+            },
+        }
+        mock_client.databases.update.return_value = {}
+        mocker.patch("ai_recruitment_agent.main.NotionClient", return_value=mock_client)
+        result = runner.invoke(app, ["setup-notion", "--notion-db-id", "db-id"])
+        assert result.exit_code == 0
+        # First update call should rename the title property
+        first_call = mock_client.databases.update.call_args_list[0]
+        assert "Name" in first_call.kwargs.get("properties", {})
+
+    def test_setup_notion_skips_existing_properties(self, monkeypatch, mocker):
+        monkeypatch.setattr("ai_recruitment_agent.main.NOTION_API_KEY", "key", raising=False)
+        monkeypatch.setattr("ai_recruitment_agent.main.DEFAULT_NOTION_DB_ID", None, raising=False)
+        # All required properties already exist
+        existing = {
+            "Candidate Name": {"type": "title"},
+            "Email": {"type": "email"},
+            "Contact Number": {"type": "phone_number"},
+            "Skills": {"type": "multi_select"},
+            "Position Title (JD)": {"type": "rich_text"},
+            "Job ID (JD)": {"type": "rich_text"},
+            "Experience Summary": {"type": "rich_text"},
+            "AI Ranking Reason": {"type": "rich_text"},
+            "Match Score": {"type": "number"},
+            "Ranking Category": {"type": "select"},
+            "Status": {"type": "select"},
+            "CV Filename": {"type": "rich_text"},
+            "Processing Date": {"type": "date"},
+        }
+        mock_client = mocker.MagicMock()
+        mock_client.databases.retrieve.return_value = {
+            "title": [{"plain_text": "Full DB"}],
+            "properties": existing,
+        }
+        mocker.patch("ai_recruitment_agent.main.NotionClient", return_value=mock_client)
+        result = runner.invoke(app, ["setup-notion", "--notion-db-id", "db-id"])
+        assert result.exit_code == 0
+        assert "Notion database is ready" in result.stdout
+        # No update call needed when all properties exist
+        mock_client.databases.update.assert_not_called()

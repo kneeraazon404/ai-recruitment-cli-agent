@@ -18,22 +18,22 @@ from ai_recruitment_agent import __version__
 
 try:
     import pdfplumber
-except ImportError:  # pragma: no cover
+except (ImportError, TypeError):  # pragma: no cover
     pdfplumber = None
 
 try:
     from docx import Document as DocxDocument
-except ImportError:  # pragma: no cover
+except (ImportError, TypeError):  # pragma: no cover
     DocxDocument = None
 
 try:
     from notion_client import Client as NotionClient
-except ImportError:  # pragma: no cover
+except (ImportError, TypeError):  # pragma: no cover
     NotionClient = None  # type: ignore
 
 try:
     from google import genai as genai_sdk
-except ImportError:  # pragma: no cover
+except (ImportError, TypeError):  # pragma: no cover
     genai_sdk = None  # type: ignore
 
 load_dotenv()

@@ -4,11 +4,11 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ai-recruitment-agent"
-version = "0.3.0"
+version = "0.3.1"
 description = "AI-powered CV screening CLI — ranks candidates against a Job Description using Google Gemini and pushes results to Notion"
 readme = "README.md"
 license = { text = "MIT" }
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 authors = [{ name = "kneeraazon404" }]
 keywords = ["recruitment", "cv", "screening", "gemini", "notion", "cli", "ai"]
 classifiers = [
@@ -18,12 +18,10 @@ classifiers = [
     "Intended Audience :: End Users/Desktop",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.14",
     "Topic :: Office/Business",
     "Topic :: Utilities",
 ]
