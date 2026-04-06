@@ -1,6 +1,12 @@
 # AI Recruitment Scanning Agent
 
+[![PyPI version](https://img.shields.io/pypi/v/ai-recruitment-agent)](https://pypi.org/project/ai-recruitment-agent/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ai-recruitment-agent)](https://pypi.org/project/ai-recruitment-agent/)
+[![PyPI - License](https://img.shields.io/pypi/l/ai-recruitment-agent)](https://pypi.org/project/ai-recruitment-agent/)
+
 A CLI tool that screens CVs against a Job Description using Google Gemini and populates a Notion database with ranked candidate profiles.
+
+**PyPI:** https://pypi.org/project/ai-recruitment-agent/
 
 ## Stack
 
