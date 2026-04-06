@@ -3,7 +3,7 @@
 [![PyPI version](https://img.shields.io/pypi/v/ai-recruitment-agent)](https://pypi.org/project/ai-recruitment-agent/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ai-recruitment-agent)](https://pypi.org/project/ai-recruitment-agent/)
 [![PyPI - License](https://img.shields.io/pypi/l/ai-recruitment-agent)](https://pypi.org/project/ai-recruitment-agent/)
-[![CI](https://github.com/kneeraazon404/ai-recruitment-cli-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/kneeraazon404/ai-recruitment-cli-agent/actions/workflows/ci.yml)
+
 
 A CLI tool that screens CVs against a Job Description using **Google Gemini 1.5 Flash** and pushes ranked candidate profiles into a **Notion database** — one command, zero manual effort.
 
